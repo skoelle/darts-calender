@@ -58,6 +58,7 @@ def _sport1_titel(item):
             "The Masters",
             "German Open",
             "German Darts Open",
+            "Super League",
         )
     )
 
@@ -268,6 +269,7 @@ def extract_ranges(spans, category):
             entries.append(parsed)
 
     ranges = []
+    used = set()
     index = 0
     while index + 2 < len(entries):
         first, marker, last = entries[index], entries[index + 1], entries[index + 2]
@@ -287,9 +289,34 @@ def extract_ranges(spans, category):
                     "kategorie": category,
                 }
             )
+            used.update((index, index + 1, index + 2))
             index += 3
         else:
             index += 1
+
+    for index, first in enumerate(entries):
+        if index in used or "datum" not in first:
+            continue
+        if index + 1 >= len(entries) or index + 1 in used:
+            continue
+        last = entries[index + 1]
+        if "datum" not in last:
+            continue
+        if first["titel"] != last["titel"] or first["details"] != last["details"]:
+            continue
+        if (last["datum"] - first["datum"]).days != 1:
+            continue
+        ranges.append(
+            {
+                "start": first["datum"].isoformat(),
+                "end": last["datum"].isoformat(),
+                "titel": first["titel"],
+                "details": first["details"],
+                "url": first["url"] or last["url"],
+                "kategorie": category,
+            }
+        )
+        used.update((index, index + 1))
 
     for item in ranges:
         item["sender"] = classify_sender(item)
