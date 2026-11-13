@@ -41,7 +41,8 @@ th{text-align:left;font:700 13px 'Barlow Condensed';letter-spacing:.15em;color:v
 td{padding:11px 12px;border-top:1px solid #262c33}tr.r{cursor:pointer}tr.r:hover td{background:#232a31}tr.past td{opacity:.45}tr.live td{background:#2a1618}
 td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .rt .s{padding:7px 0;border-bottom:1px solid #2a3038;display:flex;justify-content:space-between;gap:8px}.rt .s a{min-width:0}.rt .s b{white-space:nowrap;flex-shrink:0}.big{font:800 46px 'Barlow Condensed';color:var(--gold);line-height:1}
-.srow{display:flex;align-items:flex-start;gap:26px}
+.srow{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 26px}
+.srow>div:nth-child(2){flex-basis:100%}
 .oom{display:inline-block;color:var(--mut);text-align:center;white-space:nowrap}
 .oom i{display:block;font-style:normal;font-size:40px;line-height:1.15;transition:.15s}
 .oom:hover i{transform:scale(1.08)}.oom:hover span{text-decoration:underline;text-underline-offset:2px}
@@ -53,14 +54,14 @@ td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .ics a:hover,.ics button:hover{background:#2b323a}
 .ics i{font-style:normal;font-size:15px;line-height:1;width:18px;flex:0 0 18px;text-align:center}
 .ics .h{color:var(--mut);font-size:11px;line-height:1.35;margin-top:2px}
-@media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}}
+@media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}.srow{gap:10px 28px}.srow>div:nth-child(2){flex-basis:auto}}
 @media(max-width:640px){table{min-width:560px}th,td{padding:8px 9px}td.d{font-size:16px}th{font-size:12px}.tw{max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.shint{display:block}th{position:sticky;top:0;z-index:2}th:first-child,td:first-child{position:sticky;left:0;z-index:1}th:first-child{z-index:3;background:#171a1f}td:first-child{background:var(--panel)}tr.live td:first-child{background:#2a1618}tr.r:hover td:first-child{background:#232a31}}
 </style></head><body>
 <div class="tick"><div id="tk"></div></div>
 <div class="hdr"><div class="logo"><i></i>DARTS KALENDER</div><button id="burger" class="burger" aria-label="Filter" aria-expanded="false">☰</button></div>
 <div class="grid"><aside class="side"><div><h3>Sender</h3><span id="fs"></span></div><div><h3>Serie</h3><span id="fk"></span></div></aside>
 <main><a class="hero" id="h"></a><div class="bar"><h3 id="cnt" class="cond" style="color:var(--mut)"></h3><div class="sw"><button data-v="k">Karten</button><button data-v="t">Tabelle</button></div></div><div id="v"></div></main>
-<aside class="rt"><div><h3>Saison</h3><div class="srow"><div><div class="big" id="n1"></div><div style="color:var(--mut)">Turniere</div></div><a class="oom" href="https://www.dartsrankings.com/" target="_blank" rel="noopener" aria-label="PDC Order of Merit"><i>🏆</i><span>Order of Merit</span></a></div><div class="big" id="n2" style="margin-top:10px"></div><div style="color:var(--mut)">Turniertage</div></div><div><h3>Kalender</h3><div class="ics"><a href="webcal://www.moonweb.org/darts/darts.ics"><i>📅</i>Abonnieren (webcal)</a><button type="button" id="icscopy"><i>📋</i><span>URL kopieren</span></button><a href="https://www.moonweb.org/darts/darts.ics" download><i>⬇</i>ICS herunterladen</a><div class="h">URL in der Kalender-App als Abo eintragen oder Datei einmalig importieren.</div></div></div><div><h3>Als nächstes</h3><div id="nx"></div></div></aside></div>
+<aside class="rt"><div><h3>Saison</h3><div class="srow"><div><div class="big" id="n1"></div><div style="color:var(--mut)">Turniere</div></div><div><div class="big" id="n2"></div><div style="color:var(--mut)">Turniertage</div></div><a class="oom" href="https://www.dartsrankings.com/" target="_blank" rel="noopener" aria-label="PDC Order of Merit"><i>🏆</i><span>Order of Merit</span></a></div></div><div><h3>Kalender</h3><div class="ics"><a href="webcal://www.moonweb.org/darts/darts.ics"><i>📅</i>Abonnieren (webcal)</a><button type="button" id="icscopy"><i>📋</i><span>URL kopieren</span></button><a href="https://www.moonweb.org/darts/darts.ics" download><i>⬇</i>ICS herunterladen</a><div class="h">URL in der Kalender-App als Abo eintragen oder Datei einmalig importieren.</div></div></div><div><h3>Als nächstes</h3><div id="nx"></div></div></aside></div>
 <div class="foot">Termine: <a href="https://www.darts1.de/termine/termine.php" target="_blank" rel="noopener">darts1.de</a> <span style="opacity:.7">(Daten automatisch übernommen, ohne Gewähr)</span></div>
 <footer class="foot">Part of <a href="https://www.moonweb.org/">moonweb.org</a> · <a href="https://www.moonweb.org/darts/darts.ics">ICS</a> · <a href="https://www.moonweb.org/impressum/">Impressum</a></footer>
 <script>
