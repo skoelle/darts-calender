@@ -6,7 +6,7 @@
     "details": "Hildesheim",
     "url": "https://www.darts1.de/super-league-darts/super-league-darts.php",
     "kategorie": "pdc",
-    "sender": "Pluto.TV"
+    "sender": "SPORT1"
   },
   {
     "start": "2026-11-14",
@@ -45,21 +45,13 @@
     "sender": "SPORT1"
   },
   {
-    "start": "2027-01-04",
-    "end": "2027-01-10",
-    "titel": "PDC EU Qualifying School",
-    "details": "Kalkar",
-    "url": "https://www.darts1.de/news/2026/pdc-tourkarten.php",
+    "start": "2027-01-14",
+    "end": "2027-01-15",
+    "titel": "PDC Bahrain Darts Masters",
+    "details": "Bahrain",
+    "url": "https://www.darts1.de/world-series/bahrain-darts-masters.php",
     "kategorie": "pdc",
-    "sender": "Pluto.TV"
-  },
-  {
-    "start": "2027-01-04",
-    "end": "2027-01-10",
-    "titel": "PDC UK Qualifying School",
-    "details": "Milton Keynes",
-    "url": "https://www.darts1.de/news/2026/pdc-tourkarten.php",
-    "kategorie": "pdc",
+    "serie": "world_series",
     "sender": "Pluto.TV"
   },
   {
@@ -257,6 +249,7 @@
     "details": "Amsterdam, Niederlande",
     "url": "https://www.darts1.de/world-series/world-series-of-darts-finale.php",
     "kategorie": "pdc",
+    "serie": "world_series",
     "sender": "SPORT1"
   },
   {
@@ -332,6 +325,15 @@
     "titel": "PDC Darts-WM",
     "details": "London",
     "url": "https://www.darts1.de/dart-wm/dart-wm-teilnehmer.php",
+    "kategorie": "pdc",
+    "sender": "ProSieben"
+  },
+  {
+    "start": "2028-01-01",
+    "end": "2028-01-02",
+    "titel": "PDC Darts-WM",
+    "details": "London",
+    "url": "https://www.darts1.de/dart-wm/dart-wm-startzeiten.php",
     "kategorie": "pdc",
     "sender": "ProSieben"
   }
