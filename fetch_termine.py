@@ -27,6 +27,14 @@ ET_LINK_RE = re.compile(
     r'title="([^"]*)"'
 )
 ET_GENERIC_URL_RE = re.compile(r"/european-tour(?:-\d{4})?\.php$")
+WS_URL_RE = re.compile(r"/world-series/")
+
+
+def is_world_series(item):
+    if WS_URL_RE.search(item.get("url") or ""):
+        return True
+    titel = item["titel"]
+    return "Darts Masters" in titel or "World Series" in titel
 
 SPORT1 = "SPORT1"
 PROSIEBEN = "ProSieben"
@@ -64,7 +72,7 @@ def _sport1_titel(item):
 
 
 def _sport1_oder_pluto(item):
-    return "European Tour" in item["titel"] or "Darts Masters" in item["titel"]
+    return "European Tour" in item["titel"]
 
 
 SENDER_RULES = [
@@ -73,6 +81,7 @@ SENDER_RULES = [
     ("world_series_finals", lambda i: "World Series of Darts Finals" in i["titel"], SPORT1),
     ("players_finals", _players_finals, SPORT1),
     ("sport1_titel", _sport1_titel, SPORT1),
+    ("world_series", lambda i: i.get("serie") == "world_series", PLUTO),
     ("sport1_oder_pluto", _sport1_oder_pluto, SPORT1_ODER_PLUTO),
     ("fallback", lambda i: True, PLUTO),
 ]
@@ -319,6 +328,8 @@ def extract_ranges(spans, category):
         used.update((index, index + 1))
 
     for item in ranges:
+        if is_world_series(item):
+            item["serie"] = "world_series"
         item["sender"] = classify_sender(item)
 
     ranges.sort(key=lambda item: (item["start"], item["end"], item["titel"]))
@@ -416,45 +427,6 @@ def fetch(url):
         return response.read().decode("utf-8", errors="replace")
 
 
-MAJOR_JS = """\
-const MAJOR=['Darts-WM','UK Open','Grand Slam of Darts','World Grand Prix','The Masters','World Matchplay','World Series of Darts Finals','European Championship','World Cup','Premier League'];
-const isTour=t=>t.titel.includes('Tour');
-const isMaj=t=>!isTour(t)&&(MAJOR.some(x=>t.titel.includes(x))||(t.titel.includes('Players Championship')&&t.details.includes('Finals')));
-const nm=t=>t.event&&!t.titel.includes(t.event)?t.titel+' \u2013 '+t.event:t.titel;
-const chip=t=>isMaj(t)?'<span class="chip maj">MAJOR</span>':isTour(t)?'<span class="chip">EURO TOUR</span>':'';"""
-
-HTML_PATCHES = [
-    (
-        "const isMaj=t=>!t.titel.includes('Tour');",
-        MAJOR_JS,
-    ),
-    (
-        "+'</b> '+t.titel+' \u00b7 '+t.details",
-        "+'</b> '+nm(t)+' \u00b7 '+t.details",
-    ),
-    (
-        "<h2>'+HERO.titel+'</h2>",
-        "<h2>'+nm(HERO)+'</h2>",
-    ),
-    (
-        "t.titel.replace('PDC ','')",
-        "nm(t).replace('PDC ','')",
-    ),
-    (
-        "<h3>'+t.titel+'</h3>",
-        "<h3>'+nm(t)+'</h3>",
-    ),
-    (
-        """<span class="chip '+(isMaj(t)?'maj':'')+'">'+(isMaj(t)?'MAJOR':'EURO TOUR')+'</span>""",
-        """'+chip(t)+'""",
-    ),
-    (
-        """<td class="t">'+t.titel+' '+(isMaj(t)?'<span class="chip maj">MAJOR</span>':'')+'</td>""",
-        """<td class="t">'+nm(t)+' '+chip(t)+'</td>""",
-    ),
-]
-
-
 def js_payload(ranges):
     payload = json.dumps(ranges, ensure_ascii=False, separators=(",", ":"))
     payload = payload.replace("</", "<\\/")
@@ -479,10 +451,6 @@ def inject_data(html, payload):
 
 def build_html(ranges, layout_path):
     html = layout_path.read_text(encoding="utf-8")
-    for old, new in HTML_PATCHES:
-        if html.count(old) != 1:
-            raise ValueError(f"Layout-Anker nicht eindeutig: {old[:50]!r}")
-        html = html.replace(old, new)
     return inject_data(html, js_payload(ranges))
 
 
