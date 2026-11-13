@@ -31,7 +31,7 @@ jobs:
       - name: Validate output
         run: |
           set -euo pipefail
-          for file in dist/index.html dist/termine_pdc.ics dist/termine_pdc_zeitraeume.json; do
+          for file in dist/index.html dist/darts.ics dist/termine_pdc_zeitraeume.json; do
             if [ ! -s "$file" ]; then
               echo "Error: $file missing or empty"
               exit 1

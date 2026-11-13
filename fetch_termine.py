@@ -370,7 +370,7 @@ def build_ics(ranges, calendar_name):
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//darts-calender//darts1 PDC Zeitraeume//DE",
+        "PRODID:-//darts-calender//Darts Kalender//DE",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
         f"X-WR-CALNAME:{ics_escape(calendar_name)}",
@@ -545,13 +545,13 @@ def main():
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / f"termine_{args.category}_zeitraeume.json"
-    ics_path = out_dir / f"termine_{args.category}.ics"
+    ics_path = out_dir / "darts.ics"
 
     json_path.write_text(
         json.dumps(ranges, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     ics_path.write_text(
-        build_ics(ranges, f"Darts1 {args.category.upper()} Zeitraeume"),
+        build_ics(ranges, "Darts Kalender"),
         encoding="utf-8",
         newline="",
     )
