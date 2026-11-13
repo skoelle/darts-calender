@@ -8,7 +8,7 @@ body{margin:0;background:var(--bg);color:var(--cream);font:15px/1.4 Inter,system
 a{color:inherit;text-decoration:none}
 h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:0}
 .chip{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 8px;border-radius:4px;background:#2a3038;margin-right:6px;text-transform:uppercase}
-.chip.tv{background:#12351f;color:#7ee2a0}.chip.maj{background:var(--gold);color:#222}.chip.live{background:var(--red);animation:p 1.4s infinite}.chip.ws{background:#1b2f52;color:#9cc3ff}
+.chip.tv{background:#12351f;color:#7ee2a0}.chip.maj{background:var(--gold);color:#222}.chip.live{background:var(--red);animation:p 1.4s infinite}.chip.et{background:#1b2f52;color:#9cc3ff}.chip.ws{background:#3b2a5c;color:#c9a7ff}
 @keyframes p{50%{opacity:.5}}
 .board{background:repeating-conic-gradient(#222 0 9deg,#e8dcb5 9deg 18deg);border-radius:50%}
 .tick{background:#000;border-bottom:2px solid var(--red);overflow:hidden;white-space:nowrap;font:700 15px 'Barlow Condensed';letter-spacing:.08em;padding:8px 0}
@@ -57,27 +57,28 @@ const rng=t=>{const a=pd(t.start),b=pd(t.end);return a.getMonth()===b.getMonth()
 const isMaj=t=>!t.titel.includes('Tour')&&(['Darts-WM','UK Open','Grand Slam of Darts','World Grand Prix','The Masters','World Matchplay','World Series of Darts Finals','European Championship','World Cup','Premier League'].some(x=>t.titel.includes(x))||(t.titel.includes('Players Championship')&&t.details.includes('Finals')));
 const isTour=t=>t.titel.includes('Tour');
 const isWS=t=>t.serie==='world_series';
+const cat=t=>isMaj(t)?'Majors':isWS(t)?'WORLDS SERIES':isTour(t)?'European Tour':'Other';
 const nm=t=>t.event&&!t.titel.includes(t.event)?t.titel+' – '+t.event:t.titel;
-const chip=t=>isMaj(t)?'<span class="chip maj">MAJOR</span>':isWS(t)?'<span class="chip ws">WORLDS SERIES</span>':isTour(t)?'<span class="chip">EURO TOUR</span>':'';
+const chip=t=>isMaj(t)?'<span class="chip maj">MAJOR</span>':isWS(t)?'<span class="chip ws">WORLDS SERIES</span>':isTour(t)?'<span class="chip et">EURO TOUR</span>':'';
 const tv=t=>t.sender?'<span class="chip tv">'+t.sender+'</span>':'';
 const hs=t=>status(t)==='live'?'LÄUFT JETZT':'in '+until(t)+' Tagen';
 const $=id=>document.getElementById(id);
 $('tk').innerHTML=up.slice(0,6).map((t,i)=>(i?'<span style="margin:0 24px;color:var(--red)">●</span>':'<span class="chip live">'+(status(t)==='live'?'LIVE':'NEXT')+'</span> ')+'<b style="color:var(--gold)">'+rng(t)+'</b> '+nm(t)+' · '+t.details).join('');
-$('h').href=HERO.url;$('h').innerHTML='<div class="board"></div><span class="chip live">'+(status(HERO)==='live'?'LIVE':'NÄCHSTES TURNIER')+'</span><h2>'+nm(HERO)+'</h2><div class="when">'+rng(HERO)+' · '+HERO.details+' · '+hs(HERO)+'</div>'+tv(HERO)+'<br><span class="btn">Details →</span>';
+$('h').href=HERO.url;$('h').target='_blank';$('h').rel='noopener';$('h').innerHTML='<div class="board"></div><span class="chip live">'+(status(HERO)==='live'?'LIVE':'NÄCHSTES TURNIER')+'</span><h2>'+nm(HERO)+'</h2><div class="when">'+rng(HERO)+' · '+HERO.details+' · '+hs(HERO)+'</div>'+tv(HERO)+'<br><span class="btn">Details →</span>';
 $('n1').textContent=T.length;$('n2').textContent=T.reduce((a,t)=>a+days(t),0);
-$('nx').innerHTML=up.slice(0,5).map(t=>'<div class="s"><a href="'+t.url+'">'+nm(t).replace('PDC ','')+'</a><b>'+dnum(t)+'</b></div>').join('');
-const sv=['Alle',...new Set(T.flatMap(t=>t.sender?t.sender.split(' oder '):[]))],kv=['Alle','Majors','European Tour'];
+$('nx').innerHTML=up.slice(0,5).map(t=>'<div class="s"><a href="'+t.url+'" target="_blank" rel="noopener">'+nm(t).replace('PDC ','')+'</a><b>'+dnum(t)+'</b></div>').join('');
+const sv=['Alle',...new Set(T.flatMap(t=>t.sender?t.sender.split(' oder '):[]))],kv=['Alle','Majors','European Tour','WORLDS SERIES','Other'];
 let fs='Alle',fk='Alle',view='k',sc='start',asc=true;
 const btns=(a,k,cur)=>a.map(x=>'<button class="f '+(x===cur?'on':'')+'" data-'+k+'="'+x+'">'+x+'</button>').join('');
-function list(){return T.filter(t=>(fs==='Alle'||(t.sender||'').includes(fs))&&(fk==='Alle'||(fk==='Majors')===isMaj(t)))}
+function list(){return T.filter(t=>(fs==='Alle'||(t.sender||'').includes(fs))&&(fk==='Alle'||cat(t)===fk))}
 function draw(){
  const L=list();$('cnt').textContent=L.length+' Turniere';
  $('fs').innerHTML=btns(sv,'s',fs);$('fk').innerHTML=btns(kv,'k',fk);
  document.querySelectorAll('.sw button').forEach(b=>b.classList.toggle('on',b.dataset.v===view));
  if(view==='k'){let h='',last='';L.forEach(t=>{const d=pd(t.start),k=MONL[d.getMonth()]+' '+d.getFullYear();if(k!==last){h+='<div class="mh">'+k+'</div>';last=k}
-  h+='<a class="card '+status(t)+'" href="'+t.url+'"><div class="dt"><small>'+MON[d.getMonth()]+'</small><b>'+dnum(t)+'</b></div><div><h3>'+nm(t)+'</h3><p>'+t.details+'</p>'+chip(t)+'<span class="chip">'+days(t)+' Tage</span>'+tv(t)+'</div><span class="ar">→</span></a>'});$('v').innerHTML=h}
+  h+='<a class="card '+status(t)+'" href="'+t.url+'" target="_blank" rel="noopener"><div class="dt"><small>'+MON[d.getMonth()]+'</small><b>'+dnum(t)+'</b></div><div><h3>'+nm(t)+'</h3><p>'+t.details+'</p>'+chip(t)+'<span class="chip">'+days(t)+' Tage</span>'+tv(t)+'</div><span class="ar">→</span></a>'});$('v').innerHTML=h}
  else{const R=L.map(t=>({...t,days:days(t)}));R.sort((a,b)=>(a[sc]>b[sc]?1:a[sc]<b[sc]?-1:0)*(asc?1:-1));
-  $('v').innerHTML='<div class="tw"><table><thead><tr>'+[['start','Datum'],['titel','Turnier'],['details','Ort'],['days','Tage'],['sender','Sender']].map(c=>'<th data-c="'+c[0]+'">'+c[1]+(sc===c[0]?(asc?' ▲':' ▼'):'')+'</th>').join('')+'<th></th></tr></thead><tbody>'+R.map(t=>'<tr class="r '+status(t)+'" onclick="location.href=\''+t.url+'\'"><td class="d">'+rng(t)+'</td><td class="t">'+nm(t)+' '+chip(t)+'</td><td>'+t.details+'</td><td>'+t.days+'</td><td>'+(t.sender?tv(t):'<span style="color:var(--mut)">offen</span>')+'</td><td>→</td></tr>').join('')+'</tbody></table></div>'}
+  $('v').innerHTML='<div class="tw"><table><thead><tr>'+[['start','Datum'],['titel','Turnier'],['details','Ort'],['days','Tage'],['sender','Sender']].map(c=>'<th data-c="'+c[0]+'">'+c[1]+(sc===c[0]?(asc?' ▲':' ▼'):'')+'</th>').join('')+'<th></th></tr></thead><tbody>'+R.map(t=>'<tr class="r '+status(t)+'" onclick="window.open(\''+t.url+'\',\'_blank\',\'noopener\')"><td class="d">'+rng(t)+'</td><td class="t">'+nm(t)+' '+chip(t)+'</td><td>'+t.details+'</td><td>'+t.days+'</td><td>'+(t.sender?tv(t):'<span style="color:var(--mut)">offen</span>')+'</td><td>→</td></tr>').join('')+'</tbody></table></div>'}
  document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{fs=b.dataset.s;draw()});
  document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{fk=b.dataset.k;draw()});
  document.querySelectorAll('.sw button').forEach(b=>b.onclick=()=>{view=b.dataset.v;draw()});
