@@ -1,0 +1,6 @@
+# Termine, die nicht in JSON/ICS/HTML erscheinen.
+# Ein Muster pro Zeile; Vergleich als Substring, Gross-/Kleinschreibung egal.
+# Kommentare mit '#' und Leerzeilen werden ignoriert.
+PDC Challenge Tour
+PDC Development Tour
+Qualifying School

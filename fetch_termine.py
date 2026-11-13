@@ -14,6 +14,7 @@ ET_OVERVIEW_URL = "https://www.darts1.de/european-tour/european-tour.php"
 ET_ARCHIVE_URL = "https://www.darts1.de/european-tour/european-tour-{year}.php"
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) darts-calender/0.1"
 CATEGORY = "pdc"
+DEFAULT_BLACKLIST = Path(__file__).resolve().parent / "blacklist.txt"
 
 DATE_RE = re.compile(r"^(\d{2})\.(\d{2})\.(\d{4})\s*(.*)$", re.DOTALL)
 ET_ROW_RE = re.compile(r"<tr>(.*?)</tr>", re.DOTALL)
@@ -169,6 +170,33 @@ def enrich_with_et_deeplinks(ranges, overview_html, archive_htmls):
         item["sender"] = classify_sender(item)
 
     return resolved, unresolved
+
+
+def load_blacklist(path):
+    if not path.exists():
+        print(f"Warnung: Blacklist nicht gefunden: {path}")
+        return []
+    patterns = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        entry = line.strip()
+        if not entry or entry.startswith("#"):
+            continue
+        patterns.append(entry.casefold())
+    return patterns
+
+
+def apply_blacklist(ranges, patterns):
+    if not patterns:
+        return list(ranges), []
+    kept = []
+    removed = []
+    for item in ranges:
+        titel = item["titel"].casefold()
+        if any(pattern in titel for pattern in patterns):
+            removed.append(item)
+        else:
+            kept.append(item)
+    return kept, removed
 
 
 class TerminParser(HTMLParser):
@@ -457,6 +485,17 @@ def main():
     parser.add_argument(
         "--html-out", type=Path, help="Zieldatei fuer die HTML-Ausgabe"
     )
+    parser.add_argument(
+        "--blacklist",
+        type=Path,
+        default=DEFAULT_BLACKLIST,
+        help="Datei mit auszuschliessenden Termin-Titeln (Substring je Zeile)",
+    )
+    parser.add_argument(
+        "--no-blacklist",
+        action="store_true",
+        help="Blacklist-Filterung deaktivieren",
+    )
     parser.add_argument("--category", default=CATEGORY)
     args = parser.parse_args()
 
@@ -468,6 +507,11 @@ def main():
     html_parser = TerminParser()
     html_parser.feed(html)
     ranges = extract_ranges(html_parser.spans, args.category)
+
+    blacklist_patterns = []
+    if not args.no_blacklist:
+        blacklist_patterns = load_blacklist(args.blacklist)
+    ranges, removed = apply_blacklist(ranges, blacklist_patterns)
 
     et_has_entries = any(
         "European Tour" in item["titel"]
@@ -531,6 +575,10 @@ def main():
 
     print(f"Kategorie: {args.category}")
     print(f"Zeitraeume: {len(ranges)}")
+    if removed:
+        print(f"Blacklist: {len(removed)} Termine entfernt")
+        for item in removed:
+            print(f"  {item['start']} -> {item['end']}  {item['titel']} {item['details']}")
     if et_has_entries:
         print(f"European-Tour-Deep-Links: {resolved} aufgeloest, {len(unresolved)} offen")
     counts = {}
