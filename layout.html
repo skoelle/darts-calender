@@ -37,7 +37,7 @@ h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:u
 th{text-align:left;font:700 13px 'Barlow Condensed';letter-spacing:.15em;color:var(--mut);padding:10px 12px;cursor:pointer;background:#171a1f;text-transform:uppercase;white-space:nowrap}
 td{padding:11px 12px;border-top:1px solid #262c33}tr.r{cursor:pointer}tr.r:hover td{background:#232a31}tr.past td{opacity:.45}tr.live td{background:#2a1618}
 td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
-.rt .s{padding:7px 0;border-bottom:1px solid #2a3038;display:flex;justify-content:space-between;gap:8px}.big{font:800 46px 'Barlow Condensed';color:var(--gold);line-height:1}
+.rt .s{padding:7px 0;border-bottom:1px solid #2a3038;display:flex;justify-content:space-between;gap:8px}.rt .s a{min-width:0}.rt .s b{white-space:nowrap;flex-shrink:0}.big{font:800 46px 'Barlow Condensed';color:var(--gold);line-height:1}
 @media(max-width:980px){.grid{grid-template-columns:1fr}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}}
 </style></head><body>
 <div class="tick"><div id="tk"></div></div>
@@ -70,7 +70,8 @@ $('h').href=HERO.url;$('h').target='_blank';$('h').rel='noopener';$('h').innerHT
 $('n1').textContent=T.length;$('n2').textContent=T.reduce((a,t)=>a+days(t),0);
 $('nx').innerHTML=up.slice(0,5).map(t=>'<div class="s"><a href="'+t.url+'" target="_blank" rel="noopener">'+nm(t).replace('PDC ','')+'</a><b>'+dnum(t)+'</b></div>').join('');
 const sgroup=t=>!t.sender||t.sender.includes(' oder ')?'Unklar':t.sender;
-const sv=['Alle',...new Set(T.map(sgroup))],kv=['Alle','Majors','European Tour','WORLDS SERIES','Other'];
+const raw=[...new Set(T.map(sgroup))];
+const sv=['Alle',...raw.filter(g=>g!=='Unklar'),...(raw.includes('Unklar')?['Unklar']:[])],kv=['Alle','Majors','European Tour','WORLDS SERIES','Other'];
 let fs='Alle',fk='Alle',view='k',sc='start',asc=true;
 const btns=(a,k,cur)=>a.map(x=>'<button class="f '+(x===cur?'on':'')+'" data-'+k+'="'+x+'">'+x+'</button>').join('');
 function list(){return T.filter(t=>(fs==='Alle'||sgroup(t)===fs)&&(fk==='Alle'||cat(t)===fk))}
