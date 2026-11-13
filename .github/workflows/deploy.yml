@@ -1,0 +1,96 @@
+name: Build & Deploy darts
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-darts
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  build:
+    name: Build darts page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Generate page, ICS and JSON
+        run: python3 fetch_termine.py --out-dir dist --html-out dist/index.html
+
+      - name: Validate output
+        run: |
+          set -euo pipefail
+          for file in dist/index.html dist/termine_pdc.ics dist/termine_pdc_zeitraeume.json; do
+            if [ ! -s "$file" ]; then
+              echo "Error: $file missing or empty"
+              exit 1
+            fi
+          done
+          grep -q "const DATA=" dist/index.html || { echo "Error: DATA not injected"; exit 1; }
+          python3 -c "import json; d=json.load(open('dist/termine_pdc_zeitraeume.json')); assert d, 'empty JSON'; print(f'{len(d)} Termine')"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-darts
+          path: dist/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to IONOS
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-darts
+          path: dist
+
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+        with:
+          local_path: './dist/*'
+          server: ${{ secrets.IONOS_SFTP_HOST }}
+          username: ${{ secrets.IONOS_SFTP_USER }}
+          password: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          remote_path: '/websites/moonweb/darts/'
+          port: 22
+          sftp_only: true
+
+  summary:
+    name: Deploy Summary
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Print deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.deploy.result }}" = "success" ]; then
+            echo "darts deployed successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Deployment failed or skipped. Check the deploy job." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Site | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| darts | https://www.moonweb.org/darts/ |" >> $GITHUB_STEP_SUMMARY
+
+# Required repo secrets:
+#   IONOS_SFTP_HOST     - IONOS SFTP server hostname
+#   IONOS_SFTP_USER     - IONOS SFTP username
+#   IONOS_SFTP_PASSWORD - IONOS SFTP password
