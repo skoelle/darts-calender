@@ -10,7 +10,9 @@ h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:u
 .chip{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 8px;border-radius:4px;background:#2a3038;margin-right:6px;text-transform:uppercase}
 .chip.tv{background:#12351f;color:#7ee2a0}.chip.maj{background:var(--gold);color:#222}.chip.live{background:var(--red);animation:p 1.4s infinite}.chip.et{background:#1b2f52;color:#9cc3ff}.chip.ws{background:#3b2a5c;color:#c9a7ff}
 @keyframes p{50%{opacity:.5}}
-.board{background:repeating-conic-gradient(#222 0 9deg,#e8dcb5 9deg 18deg);border-radius:50%}
+.board{position:relative;border-radius:50%;background:repeating-conic-gradient(from -9deg,#1a1a1a 0 18deg,#e8dcb5 18deg 36deg)}
+.board::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -9deg,#d32f2f 0 18deg,#1b9e4b 18deg 36deg);-webkit-mask-image:radial-gradient(circle closest-side,transparent 0 58.2%,#000 58.2% 62.9%,transparent 62.9% 95.3%,#000 95.3% 100%);mask-image:radial-gradient(circle closest-side,transparent 0 58.2%,#000 58.2% 62.9%,transparent 62.9% 95.3%,#000 95.3% 100%)}
+.board::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle closest-side,#d32f2f 0 3.7%,#1b9e4b 3.7% 9.35%,transparent 9.35%)}
 .tick{background:#000;border-bottom:2px solid var(--red);overflow:hidden;white-space:nowrap;font:700 15px 'Barlow Condensed';letter-spacing:.08em;padding:8px 0}
 .tick div{display:inline-block;padding-left:100%;animation:m 45s linear infinite}.tick:hover div{animation-play-state:paused}@keyframes m{to{transform:translateX(-100%)}}
 .hdr{display:flex;align-items:center;justify-content:space-between}
