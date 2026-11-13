@@ -12,7 +12,7 @@ from pathlib import Path
 URL = "https://www.darts1.de/termine/termine.php"
 ET_OVERVIEW_URL = "https://www.darts1.de/european-tour/european-tour.php"
 ET_ARCHIVE_URL = "https://www.darts1.de/european-tour/european-tour-{year}.php"
-USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) darts-calender/0.1"
+USER_AGENT = "darts-calender/0.1 (+https://www.moonweb.org/darts/; Darts-Turnierkalender, taeglicher Abruf)"
 CATEGORY = "pdc"
 DEFAULT_BLACKLIST = Path(__file__).resolve().parent / "blacklist.txt"
 
