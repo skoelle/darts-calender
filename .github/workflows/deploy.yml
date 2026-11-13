@@ -31,14 +31,14 @@ jobs:
       - name: Validate output
         run: |
           set -euo pipefail
-          for file in dist/index.html dist/darts.ics dist/termine_pdc_zeitraeume.json; do
+          for file in dist/index.html dist/darts.ics dist/darts.json; do
             if [ ! -s "$file" ]; then
               echo "Error: $file missing or empty"
               exit 1
             fi
           done
           grep -q "const DATA=" dist/index.html || { echo "Error: DATA not injected"; exit 1; }
-          python3 -c "import json; d=json.load(open('dist/termine_pdc_zeitraeume.json')); assert d, 'empty JSON'; print(f'{len(d)} Termine')"
+          python3 -c "import json; d=json.load(open('dist/darts.json')); assert d, 'empty JSON'; print(f'{len(d)} Termine')"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v7

@@ -544,7 +544,7 @@ def main():
 
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    json_path = out_dir / f"termine_{args.category}_zeitraeume.json"
+    json_path = out_dir / "darts.json"
     ics_path = out_dir / "darts.ics"
 
     json_path.write_text(
