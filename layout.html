@@ -30,15 +30,17 @@ h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:u
 .sw button:first-child{border-radius:6px 0 0 6px}.sw button:last-child{border-radius:0 6px 6px 0}
 .mh{font:700 14px 'Barlow Condensed';letter-spacing:.2em;color:var(--mut);margin:20px 0 6px;text-transform:uppercase}
 .card{display:flex;gap:16px;align-items:center;background:var(--panel);border-left:4px solid var(--red);border-radius:8px;padding:12px 18px;margin:8px 0;transition:.15s}
-.card:hover{transform:translateY(-2px);border-color:var(--green);background:#20252c}.card.past{opacity:.45}.card.live{border-color:var(--gold)}
+.card.live{border-color:var(--gold)}@media(hover:hover){.card:hover{transform:translateY(-2px);border-color:var(--green);background:#20252c}}
 .dt{min-width:84px;text-align:center}.dt b{display:block;font:800 28px 'Barlow Condensed'}.dt small{color:var(--red);font-weight:600;letter-spacing:.15em}
 .card h3{font-size:21px}.card p{margin:2px 0 6px;color:var(--mut)}.ar{margin-left:auto;font-size:22px;color:var(--mut)}
-.tw{overflow-x:auto;border-radius:8px}table{width:100%;min-width:680px;border-collapse:collapse;background:var(--panel)}
+.tw{overflow-x:auto;max-width:100%;border-radius:8px}table{width:100%;min-width:680px;border-collapse:collapse;background:var(--panel)}main{min-width:0}
 th{text-align:left;font:700 13px 'Barlow Condensed';letter-spacing:.15em;color:var(--mut);padding:10px 12px;cursor:pointer;background:#171a1f;text-transform:uppercase;white-space:nowrap}
 td{padding:11px 12px;border-top:1px solid #262c33}tr.r{cursor:pointer}tr.r:hover td{background:#232a31}tr.past td{opacity:.45}tr.live td{background:#2a1618}
 td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .rt .s{padding:7px 0;border-bottom:1px solid #2a3038;display:flex;justify-content:space-between;gap:8px}.rt .s a{min-width:0}.rt .s b{white-space:nowrap;flex-shrink:0}.big{font:800 46px 'Barlow Condensed';color:var(--gold);line-height:1}
-@media(max-width:980px){.grid{grid-template-columns:1fr}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}}
+.shint{display:none;font-size:12px;color:var(--mut);margin:4px 0 6px}
+@media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}}
+@media(max-width:640px){table{min-width:560px}th,td{padding:8px 9px}td.d{font-size:16px}th{font-size:12px}.tw{max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.shint{display:block}th{position:sticky;top:0;z-index:2}th:first-child,td:first-child{position:sticky;left:0;z-index:1}th:first-child{z-index:3;background:#171a1f}td:first-child{background:var(--panel)}tr.live td:first-child{background:#2a1618}tr.r:hover td:first-child{background:#232a31}}
 </style></head><body>
 <div class="tick"><div id="tk"></div></div>
 <div class="hdr"><div class="logo"><i></i>DARTS KALENDER</div><button id="burger" class="burger" aria-label="Filter" aria-expanded="false">☰</button></div>
@@ -74,7 +76,7 @@ const raw=[...new Set(T.map(sgroup))];
 const sv=['Alle',...raw.filter(g=>g!=='Unklar'),...(raw.includes('Unklar')?['Unklar']:[])],kv=['Alle','Majors','European Tour','WORLDS SERIES','Other'];
 let fs='Alle',fk='Alle',view='k',sc='start',asc=true;
 const btns=(a,k,cur)=>a.map(x=>'<button class="f '+(x===cur?'on':'')+'" data-'+k+'="'+x+'">'+x+'</button>').join('');
-function list(){return T.filter(t=>(fs==='Alle'||sgroup(t)===fs)&&(fk==='Alle'||cat(t)===fk))}
+function list(){return T.filter(t=>status(t)!=='past'&&(fs==='Alle'||sgroup(t)===fs)&&(fk==='Alle'||cat(t)===fk))}
 function draw(){
  const L=list();$('cnt').textContent=L.length+' Turniere';
  $('fs').innerHTML=btns(sv,'s',fs);$('fk').innerHTML=btns(kv,'k',fk);
@@ -82,7 +84,7 @@ function draw(){
  if(view==='k'){let h='',last='';L.forEach(t=>{const d=pd(t.start),k=MONL[d.getMonth()]+' '+d.getFullYear();if(k!==last){h+='<div class="mh">'+k+'</div>';last=k}
   h+='<a class="card '+status(t)+'" href="'+t.url+'" target="_blank" rel="noopener"><div class="dt"><small>'+MON[d.getMonth()]+'</small><b>'+dnum(t)+'</b></div><div><h3>'+nm(t)+'</h3><p>'+t.details+'</p>'+chip(t)+'<span class="chip">'+days(t)+' Tage</span>'+tv(t)+'</div><span class="ar">→</span></a>'});$('v').innerHTML=h}
  else{const R=L.map(t=>({...t,days:days(t)}));R.sort((a,b)=>(a[sc]>b[sc]?1:a[sc]<b[sc]?-1:0)*(asc?1:-1));
-  $('v').innerHTML='<div class="tw"><table><thead><tr>'+[['start','Datum'],['titel','Turnier'],['details','Ort'],['days','Tage'],['sender','Sender']].map(c=>'<th data-c="'+c[0]+'">'+c[1]+(sc===c[0]?(asc?' ▲':' ▼'):'')+'</th>').join('')+'<th></th></tr></thead><tbody>'+R.map(t=>'<tr class="r '+status(t)+'" onclick="window.open(\''+t.url+'\',\'_blank\',\'noopener\')"><td class="d">'+rng(t)+'</td><td class="t">'+nm(t)+' '+chip(t)+'</td><td>'+t.details+'</td><td>'+t.days+'</td><td>'+(t.sender?tv(t):'<span style="color:var(--mut)">offen</span>')+'</td><td>→</td></tr>').join('')+'</tbody></table></div>'}
+  $('v').innerHTML='<div class="shint">← seitlich wischen →</div><div class="tw"><table><thead><tr>'+[['start','Datum'],['titel','Turnier'],['details','Ort'],['days','Tage'],['sender','Sender']].map(c=>'<th data-c="'+c[0]+'">'+c[1]+(sc===c[0]?(asc?' ▲':' ▼'):'')+'</th>').join('')+'<th></th></tr></thead><tbody>'+R.map(t=>'<tr class="r '+status(t)+'" onclick="window.open(\''+t.url+'\',\'_blank\',\'noopener\')"><td class="d">'+rng(t)+'</td><td class="t">'+nm(t)+' '+chip(t)+'</td><td>'+t.details+'</td><td>'+t.days+'</td><td>'+(t.sender?tv(t):'<span style="color:var(--mut)">offen</span>')+'</td><td>→</td></tr>').join('')+'</tbody></table></div>'}
 const side=document.querySelector('.side'),burger=$('burger');
 const setMenu=o=>{side.classList.toggle('open',o);burger.setAttribute('aria-expanded',o)};
 burger.onclick=()=>setMenu(!side.classList.contains('open'));
