@@ -6,6 +6,7 @@ import re
 import sys
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -451,7 +452,19 @@ def inject_data(html, payload):
 
 def build_html(ranges, layout_path):
     html = layout_path.read_text(encoding="utf-8")
+    html = inject_build_time(html, build_stamp())
     return inject_data(html, js_payload(ranges))
+
+
+def build_stamp():
+    return datetime.now(ZoneInfo("Europe/Berlin")).strftime("%d.%m.%Y %H:%M")
+
+
+def inject_build_time(html, stamp):
+    if "__BUILD__" not in html:
+        print("Warnung: Kein '__BUILD__'-Platzhalter im Layout gefunden")
+        return html
+    return html.replace("__BUILD__", stamp)
 
 
 def main():
