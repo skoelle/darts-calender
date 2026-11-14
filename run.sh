@@ -10,6 +10,12 @@ if [ -x .venv/bin/python3 ]; then
     PYTHON=.venv/bin/python3
 fi
 
+if [ -f .env ] && [ -z "${OUT_DIR+x}" ]; then
+    set -a
+    . ./.env
+    set +a
+fi
+
 OUT_DIR="${OUT_DIR:-dist}"
 
 "$PYTHON" fetch_termine.py --out-dir "$OUT_DIR" --html-out "$OUT_DIR/index.html" "$@"

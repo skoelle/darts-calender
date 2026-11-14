@@ -47,6 +47,15 @@ Umgebungsvariable `OUT_DIR` überschreiben:
 OUT_DIR=/pfad/zum/ziel ./run.sh
 ```
 
+Alternativ kann eine lokale `.env` im Projektverzeichnis angelegt werden;
+`run.sh` lädt sie automatisch. Eine explizit gesetzte Umgebungsvariable hat
+Vorrang vor der `.env`. Vorlage: [`.env.example`](.env.example) — die `.env`
+selbst ist per `.gitignore` ausgeschlossen.
+
+```bash
+cp .env.example .env
+```
+
 Alternativ direkt:
 
 ```bash
