@@ -40,6 +40,13 @@ python3 -m venv .venv      # optional, nur Standardbibliothek nötig
 ./run.sh
 ```
 
+Das Zielverzeichnis ist standardmässig `dist/` und lässt sich über die
+Umgebungsvariable `OUT_DIR` überschreiben:
+
+```bash
+OUT_DIR=/pfad/zum/ziel ./run.sh
+```
+
 Alternativ direkt:
 
 ```bash
