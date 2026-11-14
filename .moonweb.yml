@@ -1,0 +1,7 @@
+title: "Darts Calendar"
+emoji: "🎯"
+category: code
+subcategory: "Apps"
+status: active
+stack: [Python, HTML, CSS, JavaScript, GitHub Actions, ICS, JSON]
+summary: "PDC tournament calendar as a website, JSON file and subscribable ICS feed, rebuilt and deployed daily"
