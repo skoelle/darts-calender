@@ -8,8 +8,7 @@ body{margin:0;background:var(--bg);color:var(--cream);font:15px/1.4 Inter,system
 a{color:inherit;text-decoration:none}
 h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:0}
 .chip{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;padding:2px 8px;border-radius:4px;background:#2a3038;margin-right:6px;text-transform:uppercase}
-.chip.tv{background:#12351f;color:#7ee2a0}.chip.maj{background:var(--gold);color:#222}.chip.live{background:var(--red);animation:p 1.4s infinite}.chip.et{background:#1b2f52;color:#9cc3ff}.chip.ws{background:#3b2a5c;color:#c9a7ff}
-@keyframes p{50%{opacity:.5}}
+.chip.tv{background:#12351f;color:#7ee2a0}.chip.maj{background:var(--gold);color:#222}.chip.live{background:var(--red)}.chip.et{background:#1b2f52;color:#9cc3ff}.chip.ws{background:#3b2a5c;color:#c9a7ff}
 .board{position:relative;border-radius:50%;background:repeating-conic-gradient(from -9deg,#1a1a1a 0 18deg,#e8dcb5 18deg 36deg)}
 .board::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -9deg,#d32f2f 0 18deg,#1b9e4b 18deg 36deg);-webkit-mask-image:radial-gradient(circle closest-side,transparent 0 58.2%,#000 58.2% 62.9%,transparent 62.9% 95.3%,#000 95.3% 100%);mask-image:radial-gradient(circle closest-side,transparent 0 58.2%,#000 58.2% 62.9%,transparent 62.9% 95.3%,#000 95.3% 100%)}
 .board::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle closest-side,#d32f2f 0 3.7%,#1b9e4b 3.7% 9.35%,transparent 9.35%)}
@@ -84,10 +83,10 @@ const chip=t=>isMaj(t)?'<span class="chip maj">MAJOR</span>':isWS(t)?'<span clas
 const tv=t=>t.sender?'<span class="chip tv">'+t.sender+'</span>':'';
 const OOM='https://www.dartsrankings.com/';
 const oomBtn=t=>(isMaj(t)||isTour(t))?'<span class="btn alt" role="link" data-oom="'+OOM+'">Order of Merit ↗</span>':'';
-const hs=t=>status(t)==='live'?'LÄUFT JETZT':'in '+until(t)+' Tagen';
+const hs=t=>status(t)==='live'?'HEUTE TURNIERTAG':'in '+until(t)+' Tagen';
 const $=id=>document.getElementById(id);
-$('tk').innerHTML=up.slice(0,6).map((t,i)=>(i?'<span style="margin:0 24px;color:var(--red)">●</span>':'<span class="chip live">'+(status(t)==='live'?'LIVE':'NEXT')+'</span> ')+'<b style="color:var(--gold)">'+rng(t)+'</b> '+nm(t)+' · '+t.details).join('');
-$('h').href=HERO.url;$('h').target='_blank';$('h').rel='noopener';$('h').innerHTML='<div class="board"></div><span class="chip live">'+(status(HERO)==='live'?'LIVE':'NÄCHSTES TURNIER')+'</span><h2>'+nm(HERO)+'</h2><div class="when">'+rng(HERO)+' · '+HERO.details+' · '+hs(HERO)+'</div>'+tv(HERO)+'<br><span class="btn">Details →</span>'+oomBtn(HERO);
+$('tk').innerHTML=up.slice(0,6).map((t,i)=>(i?'<span style="margin:0 24px;color:var(--red)">●</span>':'<span class="chip'+(status(t)==='live'?' live':'')+'">'+(status(t)==='live'?'MATCHDAY':'NEXT')+'</span> ')+'<b style="color:var(--gold)">'+rng(t)+'</b> '+nm(t)+' · '+t.details).join('');
+$('h').href=HERO.url;$('h').target='_blank';$('h').rel='noopener';$('h').innerHTML='<div class="board"></div><span class="chip'+(status(HERO)==='live'?' live':'')+'">'+(status(HERO)==='live'?'MATCHDAY':'NÄCHSTES TURNIER')+'</span><h2>'+nm(HERO)+'</h2><div class="when">'+rng(HERO)+' · '+HERO.details+' · '+hs(HERO)+'</div>'+tv(HERO)+'<br><span class="btn">Details →</span>'+oomBtn(HERO);
 $('n1').textContent=T.length;$('n2').textContent=T.reduce((a,t)=>a+days(t),0);
 $('nx').innerHTML=up.slice(0,5).map(t=>'<div class="s"><a href="'+t.url+'" target="_blank" rel="noopener">'+nm(t).replace('PDC ','')+'</a><b>'+dnum(t)+'</b></div>').join('');
 const sgroup=t=>!t.sender||t.sender.includes(' oder ')?'Unklar':t.sender;

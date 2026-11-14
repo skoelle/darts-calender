@@ -7,7 +7,7 @@ neu aufgebaut.
 ## ✨ Funktionen
 
 - 📅 **Karten- und Tabellenansicht** mit Umschalter
-- 🔴 **Live-Status**: laufende Turniere, Countdown und "Als nächstes"-Liste
+- 🔴 **Matchday-Status**: Turniertage, Countdown und "Als nächstes"-Liste
 - 🏷️ **Filter** nach Sender und Serie (Majors, European Tour, World Series …)
 - 🏆 **Order of Merit** direkt verlinkt — aus der Saison-Karte und im Hero bei
   Majors und European-Tour-Events
