@@ -405,8 +405,8 @@ def build_ics(ranges, calendar_name):
             ]
         )
         description = summary
-        if sender:
-            description = f"{description}\nUebertragung: {sender}"
+        if item["url"]:
+            description = f"{description}\nDetails und Quelle: {item['url']}"
         lines.append(f"DESCRIPTION:{ics_escape(description)}")
         if sender:
             categories = ",".join(
