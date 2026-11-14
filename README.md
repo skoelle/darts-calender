@@ -78,6 +78,18 @@ lokalen Kopien; ein Blick in `--help` lohnt sich.
 Die Termine werden automatisch übernommen und ohne Gewähr bereitgestellt.
 Terminverschiebungen der Veranstalter sind jederzeit möglich.
 
+## 🤖 Robots.txt
+
+Vor jedem Abruf wird die `robots.txt` des Ziel-Hosts ausgewertet (RFC 9309).
+Geprüft werden sowohl die passende `User-agent`-Gruppe (Produkt-Token
+`darts-calender`, sonst `*`) als auch der Pfad inklusive Wildcards (`*`, `$`)
+und Longest-Match. Auch Weiterleitungsziele werden geprüft.
+
+- `4xx` auf `robots.txt`: Zugriff auf den Host gilt als erlaubt.
+- `5xx`, Timeout oder Netzwerkfehler: Der Lauf bricht mit Fehlercode und
+  Meldung ab (RFC: „unreachable“ = komplett gesperrt).
+- Gesperrte URL: Abbruch mit klarer Fehlermeldung, kein Deploy.
+
 ## License
 
 Licensed under the [MIT License](LICENSE) - Copyright (c) 2026 Stefan Koelle (https://stefankoelle.de)

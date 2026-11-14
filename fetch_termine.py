@@ -6,16 +6,20 @@ import hashlib
 import json
 import re
 import sys
+import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 from html.parser import HTMLParser
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 URL = "https://www.darts1.de/termine/termine.php"
 ET_OVERVIEW_URL = "https://www.darts1.de/european-tour/european-tour.php"
 ET_ARCHIVE_URL = "https://www.darts1.de/european-tour/european-tour-{year}.php"
 USER_AGENT = "darts-calender/0.1 (+https://www.moonweb.org/darts/; Darts-Turnierkalender, taeglicher Abruf)"
+ROBOTS_TOKEN = USER_AGENT.split("/")[0].strip().lower()
+ROBOTS_MAX_BYTES = 500 * 1024
 CATEGORY = "pdc"
 DEFAULT_BLACKLIST = Path(__file__).resolve().parent / "blacklist.txt"
 
@@ -424,9 +428,145 @@ def build_ics(ranges, calendar_name):
     return "\r\n".join(folded) + "\r\n"
 
 
+class RobotsDisallowed(OSError):
+    def __init__(self, url, host, reason):
+        self.url = url
+        self.host = host
+        self.reason = reason
+        super().__init__(
+            f"Zugriff laut robots.txt untersagt: {url} ({host}: {reason})"
+        )
+
+
+def _robots_pattern_regex(pattern):
+    parts = []
+    for index, char in enumerate(pattern):
+        if char == "*":
+            parts.append(".*")
+        elif char == "$" and index == len(pattern) - 1:
+            parts.append("$")
+        else:
+            parts.append(re.escape(char))
+    return re.compile("^" + "".join(parts))
+
+
+class RobotsPolicy:
+    def __init__(self, rules=None):
+        self.rules = rules or []
+
+    @classmethod
+    def from_text(cls, text):
+        groups = []
+        current = None
+        in_agents = False
+        for raw_line in text.splitlines():
+            line = raw_line.split("#", 1)[0].strip()
+            if not line:
+                in_agents = False
+                continue
+            key, sep, value = line.partition(":")
+            if not sep:
+                continue
+            key = key.strip().lower()
+            value = value.strip()
+            if key == "user-agent":
+                if not in_agents:
+                    current = []
+                    groups.append(current)
+                    in_agents = True
+                current.append(value.lower())
+            elif key in ("allow", "disallow"):
+                if current is None:
+                    continue
+                in_agents = False
+                current.append(("allow" if key == "allow" else "disallow", value))
+
+        token = ROBOTS_TOKEN
+        specific = []
+        specific_matched = False
+        wildcard = []
+        for group in groups:
+            agents = [item for item in group if isinstance(item, str)]
+            rules = [item for item in group if isinstance(item, tuple)]
+            for agent in agents:
+                if agent == "*":
+                    wildcard.extend(rules)
+                elif agent == token:
+                    specific_matched = True
+                    specific.extend(rules)
+        return cls(specific if specific_matched else wildcard)
+
+    def allows(self, url):
+        parsed = urllib.parse.urlparse(url)
+        path = parsed.path or "/"
+        if parsed.query:
+            path = f"{path}?{parsed.query}"
+        if path == "/robots.txt":
+            return True
+        if not self.rules:
+            return True
+        best = None
+        for kind, pattern in self.rules:
+            if not pattern:
+                continue
+            regex = _robots_pattern_regex(pattern)
+            if not regex.match(path):
+                continue
+            length = len(pattern)
+            allow = kind == "allow"
+            if best is None or length > best[0] or (length == best[0] and allow):
+                best = (length, allow)
+        if best is None:
+            return True
+        return best[1]
+
+
+_robots_cache = {}
+
+
+def load_robots_policy(url):
+    parsed = urllib.parse.urlparse(url)
+    origin = f"{parsed.scheme}://{parsed.netloc}"
+    host = parsed.netloc
+    if origin in _robots_cache:
+        return _robots_cache[origin]
+
+    robots_url = f"{origin}/robots.txt"
+    request = urllib.request.Request(robots_url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            raw = response.read(ROBOTS_MAX_BYTES + 1)
+    except urllib.error.HTTPError as error:
+        if 400 <= error.code < 500:
+            policy = RobotsPolicy()
+        else:
+            raise RobotsDisallowed(
+                url, host, f"robots.txt nicht abrufbar (HTTP {error.code})"
+            ) from error
+    except (OSError, ValueError) as error:
+        raise RobotsDisallowed(
+            url, host, f"robots.txt nicht abrufbar ({error})"
+        ) from error
+    else:
+        policy = RobotsPolicy.from_text(raw.decode("utf-8", errors="replace"))
+    _robots_cache[origin] = policy
+    return policy
+
+
+def check_robots(url):
+    policy = load_robots_policy(url)
+    if not policy.allows(url):
+        origin = urllib.parse.urlparse(url).netloc
+        raise RobotsDisallowed(url, origin, "Pfad oder User-Agent gesperrt")
+
+
 def fetch(url):
+    check_robots(url)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=30) as response:
+        final_url = response.geturl()
+        if final_url and final_url != url:
+            check_robots(final_url)
         return response.read().decode("utf-8", errors="replace")
 
 
@@ -537,6 +677,8 @@ def main():
         else:
             try:
                 et_html = fetch(ET_OVERVIEW_URL)
+            except RobotsDisallowed:
+                raise
             except OSError as error:
                 print(f"Warnung: European-Tour-Uebersicht nicht ladbar: {error}")
                 et_html = None
@@ -549,6 +691,8 @@ def main():
             for year in years:
                 try:
                     archive_htmls.append(fetch(ET_ARCHIVE_URL.format(year=year)))
+                except RobotsDisallowed:
+                    raise
                 except OSError:
                     continue
 
@@ -613,4 +757,8 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except RobotsDisallowed as error:
+        print(f"Fehler: {error}", file=sys.stderr)
+        sys.exit(1)
