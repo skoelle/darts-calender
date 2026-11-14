@@ -61,3 +61,7 @@ lokalen Kopien; ein Blick in `--help` lohnt sich.
 
 Die Termine werden automatisch übernommen und ohne Gewähr bereitgestellt.
 Terminverschiebungen der Veranstalter sind jederzeit möglich.
+
+## License
+
+Licensed under the [MIT License](LICENSE) - Copyright (c) 2026 Stefan Koelle (https://stefankoelle.de)
