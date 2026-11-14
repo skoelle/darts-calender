@@ -59,5 +59,5 @@ lokalen Kopien; ein Blick in `--help` lohnt sich.
 
 ## ⚠️ Hinweis
 
-Die Daten werden automatisch übernommen und ohne Gewähr bereitgestellt.
+Die Termine werden automatisch übernommen und ohne Gewähr bereitgestellt.
 Terminverschiebungen der Veranstalter sind jederzeit möglich.
