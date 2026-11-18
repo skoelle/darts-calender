@@ -24,14 +24,6 @@ ROBOTS_MAX_BYTES = 500 * 1024
 CATEGORY = "pdc"
 DEFAULT_BLACKLIST = Path(__file__).resolve().parent / "blacklist.txt"
 FIXTURES_API_URL = "https://api.dartsapi.com/v1/fixtures"
-ROUND_LABELS = {
-    "last_64": "Letzte 64",
-    "last_32": "Letzte 32",
-    "last_16": "Achtelfinale",
-    "quarter_final": "Viertelfinale",
-    "semi_final": "Halbfinale",
-    "final": "Finale",
-}
 
 DATE_RE = re.compile(r"^(\d{2})\.(\d{2})\.(\d{4})\s*(.*)$", re.DOTALL)
 ET_ROW_RE = re.compile(r"<tr>(.*?)</tr>", re.DOTALL)
@@ -587,7 +579,11 @@ def fetch_fixtures(today):
         return []
 
     query = urllib.parse.urlencode(
-        {"from": today.isoformat(), "to": today.isoformat(), "limit": 100}
+        {
+            "from": (today - timedelta(days=1)).isoformat(),
+            "to": (today + timedelta(days=1)).isoformat(),
+            "limit": 200,
+        }
     )
     request = urllib.request.Request(
         f"{FIXTURES_API_URL}?{query}",
@@ -603,10 +599,10 @@ def fetch_fixtures(today):
     except (OSError, ValueError) as error:
         print(f"Warnung: Matchday-Spiele nicht ladbar: {error}")
         return []
-    return normalize_fixtures(payload.get("data") or [])
+    return normalize_fixtures(payload.get("data") or [], today)
 
 
-def normalize_fixtures(raw):
+def normalize_fixtures(raw, today):
     fixtures = []
     for item in raw:
         players = [
@@ -615,35 +611,41 @@ def normalize_fixtures(raw):
         if len(players) != 2 or not all(players):
             continue
         start = item.get("starts_at")
-        local_start = ""
-        if start:
-            try:
-                local_start = (
-                    datetime.fromisoformat(start.replace("Z", "+00:00"))
-                    .astimezone(ZoneInfo("Europe/Berlin"))
-                    .strftime("%H:%M")
-                )
-            except ValueError:
-                local_start = ""
-        round_code = item.get("round") or ""
-        confirmed = item.get("date_confirmed")
+        if not start:
+            continue
+        try:
+            local = datetime.fromisoformat(start.replace("Z", "+00:00")).astimezone(
+                ZoneInfo("Europe/Berlin")
+            )
+        except ValueError:
+            continue
+        if local.date() != today:
+            continue
         fixtures.append(
             {
                 "competition": item.get("competition") or "",
-                "round": ROUND_LABELS.get(round_code, round_code),
-                "start": local_start,
-                "confirmed": confirmed if isinstance(confirmed, bool) else None,
+                "start": local.strftime("%H:%M"),
                 "players": players,
             }
         )
-    fixtures.sort(
-        key=lambda f: (
-            f["start"] == "",
-            f["start"],
-            f["competition"],
-            f["players"][0],
-        )
-    )
+    fixtures.sort(key=lambda f: (f["start"], f["competition"], f["players"][0]))
+    return fixtures
+
+
+def normalize_title(title):
+    text = re.sub(r"\s+", " ", title or "").strip().casefold()
+    text = re.sub(r"^pdc\s+", "", text)
+    return re.sub(r"\s+\d{4}$", "", text)
+
+
+def enrich_fixtures(fixtures, ranges):
+    urls = {}
+    for item in ranges:
+        key = normalize_title(item["titel"])
+        if key and item.get("url"):
+            urls.setdefault(key, item["url"])
+    for fixture in fixtures:
+        fixture["url"] = urls.get(normalize_title(fixture["competition"]), URL)
     return fixtures
 
 
@@ -799,16 +801,18 @@ def main():
         for item in ranges:
             item["sender"] = classify_sender(item)
 
+    today = datetime.now(ZoneInfo("Europe/Berlin")).date()
     fixtures = []
     if not args.no_fixtures:
         if args.fixtures_source:
             try:
                 payload = json.loads(args.fixtures_source.read_text(encoding="utf-8"))
-                fixtures = normalize_fixtures(payload.get("data") or [])
+                fixtures = normalize_fixtures(payload.get("data") or [], today)
             except (OSError, ValueError) as error:
                 print(f"Warnung: Matchday-Spiele aus Datei nicht lesbar: {error}")
         else:
-            fixtures = fetch_fixtures(datetime.now(ZoneInfo("Europe/Berlin")).date())
+            fixtures = fetch_fixtures(today)
+        fixtures = enrich_fixtures(fixtures, ranges)
 
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -845,7 +849,7 @@ def main():
     print(f"Matchday-Spiele: {len(fixtures)}")
     for fixture in fixtures:
         print(
-            f"  {fixture['start'] or '--:--'}  {fixture['round']}  "
+            f"  {fixture['start']}  "
             f"{fixture['players'][0]} vs. {fixture['players'][1]}"
         )
     if removed:

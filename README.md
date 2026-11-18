@@ -72,8 +72,10 @@ lokalen Kopien; ein Blick in `--help` lohnt sich.
 
 An Spieltagen werden zusätzlich die konkreten Paarungen des Tages aus
 [api.dartsapi.com](https://dartsapi.com/documentation) geladen und unter dem
-Hero angezeigt. Dafür wird der API-Key in der Umgebungsvariable
-`DARTS_API_KEY` erwartet:
+Hero angezeigt. Gezeigt werden nur Spiele mit bekannter Anstosszeit für den
+heutigen Tag (Europe/Berlin); jede Zeile verlinkt die passende Turnierseite bei
+darts1.de inklusive Ergebnisse. Dafür wird der API-Key in der
+Umgebungsvariable `DARTS_API_KEY` erwartet:
 
 ```bash
 DARTS_API_KEY="da_live_..." ./run.sh

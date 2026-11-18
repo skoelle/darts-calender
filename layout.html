@@ -122,7 +122,7 @@ draw();
  const box=$('fx');
  if(!FIXTURES.length){box.remove();return}
  const groups={};FIXTURES.forEach(f=>{const k=f.competition||'Spiele';(groups[k]=groups[k]||[]).push(f)});
- box.innerHTML=Object.entries(groups).map(([comp,list])=>'<div class="mh">🎯 Heute · '+comp+'</div>'+list.map(f=>'<div class="card live"><div class="dt"><b>'+(f.start||'–:–')+'</b><small>'+(f.round||'Spiel')+'</small></div><div><h3>'+f.players[0]+' <span style="color:var(--mut)">vs.</span> '+f.players[1]+'</h3>'+(f.confirmed===false?'<span class="chip" style="background:#3a2a12;color:var(--gold)">UNBESTÄTIGT</span>':'<span class="chip tv">'+comp+'</span>')+'</div></div>').join('')).join('');
+ box.innerHTML=Object.entries(groups).map(([comp,list])=>'<div class="mh">🎯 Heute · '+comp+'</div>'+list.map(f=>'<a class="card live" href="'+f.url+'" target="_blank" rel="noopener"><div class="dt"><b>'+f.start+'</b></div><div><h3>'+f.players[0]+' <span style="color:var(--mut)">vs.</span> '+f.players[1]+'</h3><p>Ergebnisse bei darts1.de ↗</p></div></a>').join('')).join('');
 })();
 const ICS_URL='https://www.moonweb.org/darts/darts.ics',cp=$('icscopy');
 cp.onclick=()=>{const s=cp.querySelector('span'),t=s.textContent;navigator.clipboard.writeText(ICS_URL).then(()=>{s.textContent='Kopiert ✓';setTimeout(()=>{s.textContent=t},1500)},()=>{prompt('ICS-URL kopieren:',ICS_URL)})};
