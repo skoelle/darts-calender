@@ -49,6 +49,7 @@ td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .oom i{display:block;font-style:normal;font-size:40px;line-height:1.15;transition:.15s}
 .oom:hover i{transform:scale(1.08)}.oom:hover span{text-decoration:underline;text-underline-offset:2px}
 .shint{display:none;font-size:12px;color:var(--mut);margin:4px 0 6px}
+.fxsrc{font-size:11px;color:var(--mut);letter-spacing:normal;text-transform:none;margin:-2px 0 8px}
 .foot{max-width:1240px;margin:0 auto;padding:0 16px;text-align:center;color:var(--mut);font-size:12px;letter-spacing:.04em}
 .foot+.foot{margin-top:1.4em}footer.foot{padding-bottom:40px}
 .foot a{color:inherit;text-decoration:underline;text-underline-offset:2px}
@@ -123,7 +124,7 @@ draw();
  const box=$('fx');
  if(!FIXTURES.length){box.remove();return}
  const groups={};FIXTURES.forEach(f=>{const k=f.competition||'Spiele';(groups[k]=groups[k]||[]).push(f)});
- box.innerHTML=Object.entries(groups).map(([comp,list])=>'<div class="mh">🎯 Heute · '+comp+'</div>'+list.map(f=>'<a class="card live" href="'+f.url+'" target="_blank" rel="noopener"><div class="dt"><b>'+f.start+'</b></div><div><h3>'+f.players[0]+' <span style="color:var(--mut)">vs.</span> '+f.players[1]+'</h3><p>Ergebnisse bei darts1.de ↗</p></div></a>').join('')).join('');
+ box.innerHTML=Object.entries(groups).map(([comp,list])=>'<div class="mh">🎯 Heute · '+comp+'</div><div class="fxsrc">Spielplan via dartsapi.com · ohne Gewähr</div>'+list.map(f=>'<a class="card live" href="'+f.url+'" target="_blank" rel="noopener"><div class="dt"><b>'+f.start+'</b></div><div><h3>'+f.players[0]+' <span style="color:var(--mut)">vs.</span> '+f.players[1]+'</h3><p>Ergebnisse auf darts1.de ansehen ↗</p></div></a>').join('')).join('');
 })();
 const ICS_URL='https://www.moonweb.org/darts/darts.ics',cp=$('icscopy');
 cp.onclick=()=>{const s=cp.querySelector('span'),t=s.textContent;navigator.clipboard.writeText(ICS_URL).then(()=>{s.textContent='Kopiert ✓';setTimeout(()=>{s.textContent=t},1500)},()=>{prompt('ICS-URL kopieren:',ICS_URL)})};
