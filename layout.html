@@ -18,6 +18,7 @@ h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:u
 .tick{background:#000;border-bottom:2px solid var(--red);overflow:hidden;white-space:nowrap;font:700 15px 'Barlow Condensed';letter-spacing:.08em;padding:8px 0}
 .tick div{display:inline-block;padding-left:100%;animation:m 45s linear infinite}.tick:hover div{animation-play-state:paused}@keyframes m{to{transform:translateX(-100%)}}
 .hdr{display:flex;align-items:center;justify-content:space-between}
+.topwrap{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid #2c333b;box-shadow:0 8px 14px -10px rgba(0,0,0,.65)}
 .logo{font:800 22px 'Barlow Condensed';letter-spacing:.1em;display:flex;align-items:center;gap:10px;padding:16px}
 .burger{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin-right:16px;background:#242a31;color:var(--cream);border:0;border-radius:8px;font-size:20px;line-height:1;cursor:pointer}
 .logo i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,var(--red) 0 22%,var(--cream) 23% 40%,var(--green) 41% 62%,#222 63%)}
@@ -59,11 +60,14 @@ td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .ics a:hover,.ics button:hover{background:#2b323a}
 .ics i{font-style:normal;font-size:15px;line-height:1;width:18px;flex:0 0 18px;text-align:center}
 .ics .h{color:var(--mut);font-size:11px;line-height:1.35;margin-top:2px}
+@media(min-width:981px){.side{position:sticky;top:calc(var(--top,96px) + 12px);align-self:start}}
 @media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}.srow{gap:10px 28px}.srow>div:nth-child(2){order:0;flex-basis:auto}}
 @media(max-width:640px){table{min-width:560px}th,td{padding:8px 9px}td.d{font-size:16px}th{font-size:12px}.tw{max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.shint{display:block}th{position:sticky;top:0;z-index:2}th:first-child,td:first-child{position:sticky;left:0;z-index:1}th:first-child{z-index:3;background:#171a1f}td:first-child{background:var(--panel)}tr.live td:first-child{background:#2a1618}tr.r:hover td:first-child{background:#232a31}}
 </style></head><body>
+<div class="topwrap">
 <div class="tick"><div id="tk"></div></div>
 <div class="hdr"><div class="logo"><i></i>DARTS KALENDER</div><button id="burger" class="burger" aria-label="Filter" aria-expanded="false">☰</button></div>
+</div>
 <div class="grid"><aside class="side"><div><h3>Sender</h3><span id="fs"></span></div><div><h3>Serie</h3><span id="fk"></span></div></aside>
 <main><a class="hero" id="h"></a><div id="fx"></div><div class="bar"><h3 id="cnt" class="cond" style="color:var(--mut)"></h3><div class="sw"><button data-v="k">Karten</button><button data-v="t">Tabelle</button></div></div><div id="v"></div></main>
 <aside class="rt"><div><h3>Saison</h3><div class="srow"><div><div class="big" id="n1"></div><div style="color:var(--mut)">Turniere</div></div><div><div class="big" id="n2"></div><div style="color:var(--mut)">Turniertage</div></div><a class="oom" href="https://www.dartsrankings.com/" target="_blank" rel="noopener" aria-label="PDC Order of Merit"><i>🏆</i><span>Order of Merit</span></a></div></div><div><h3>Kalender</h3><div class="ics"><a href="webcal://www.moonweb.org/darts/darts.ics"><i>📅</i>Abonnieren (webcal)</a><button type="button" id="icscopy"><i>📋</i><span>URL kopieren</span></button><a href="https://www.moonweb.org/darts/darts.ics" download><i>⬇</i>ICS herunterladen</a><div class="h">URL in der Kalender-App als Abo eintragen oder Datei einmalig importieren.<br>Stand: __BUILD__</div></div></div><div><h3>Als nächstes</h3><div id="nx"></div></div></aside></div>
@@ -121,6 +125,8 @@ burger.onclick=()=>setMenu(!side.classList.contains('open'));
  document.querySelectorAll('th[data-c]').forEach(h=>h.onclick=()=>{asc=sc===h.dataset.c?!asc:true;sc=h.dataset.c;draw()});
 }
 draw();
+const setTop=()=>document.documentElement.style.setProperty('--top',document.querySelector('.topwrap').offsetHeight+'px');
+setTop();addEventListener('load',setTop);addEventListener('resize',setTop);if(document.fonts)document.fonts.ready.then(setTop);
 (function(){
  const box=$('fx');
  if(!FIXTURES.length){box.remove();return}
