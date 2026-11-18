@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-:root{--bg:#121417;--panel:#1a1e24;--red:#d32f2f;--green:#1b9e4b;--cream:#f5f5f0;--mut:#8b94a1;--gold:#f2c14e}
+:root{--bg:#121417;--panel:#1a1e24;--red:#d32f2f;--green:#1b9e4b;--cream:#f5f5f0;--mut:#8b94a1;--gold:#f2c14e;--gap:18px}
 body{margin:0;background:var(--bg);color:var(--cream);font:15px/1.4 Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums}
 a{color:inherit;text-decoration:none}
 h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:.02em;margin:0}
@@ -22,7 +22,7 @@ h1,h2,h3,.cond{font-family:'Barlow Condensed',Impact,sans-serif;text-transform:u
 .logo{font:800 22px 'Barlow Condensed';letter-spacing:.1em;display:flex;align-items:center;gap:10px;padding:16px}
 .burger{display:none;align-items:center;justify-content:center;width:40px;height:40px;margin-right:16px;background:#242a31;color:var(--cream);border:0;border-radius:8px;font-size:20px;line-height:1;cursor:pointer}
 .logo i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,var(--red) 0 22%,var(--cream) 23% 40%,var(--green) 41% 62%,#222 63%)}
-.grid{display:grid;grid-template-columns:210px minmax(0,1fr) 230px;gap:18px;max-width:1240px;margin:auto;padding:0 16px 60px}
+.grid{display:grid;grid-template-columns:210px minmax(0,1fr) 230px;gap:var(--gap);max-width:1240px;margin:auto;padding:var(--gap) 16px 60px}
 .side>div,.rt>div{background:var(--panel);border-radius:12px;padding:14px;margin-bottom:14px}
 .side h3,.rt h3{font-size:14px;color:var(--mut);letter-spacing:.15em;margin-bottom:8px}
 .f{display:block;width:100%;text-align:left;background:#242a31;color:var(--cream);border:0;padding:8px 10px;border-radius:8px;margin-bottom:6px;cursor:pointer}.f.on{background:var(--green)}
@@ -60,7 +60,7 @@ td.d{font:700 18px 'Barlow Condensed';white-space:nowrap}td.t{font-weight:600}
 .ics a:hover,.ics button:hover{background:#2b323a}
 .ics i{font-style:normal;font-size:15px;line-height:1;width:18px;flex:0 0 18px;text-align:center}
 .ics .h{color:var(--mut);font-size:11px;line-height:1.35;margin-top:2px}
-@media(min-width:981px){.side{position:sticky;top:calc(var(--top,96px) + 12px);align-self:start}}
+@media(min-width:981px){.logo{padding:10px 16px}.side{position:sticky;top:calc(var(--top,96px) + var(--gap));align-self:start}}
 @media(max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.burger{display:flex}.side{display:none}.side.open{display:block}.side>div{display:flex;flex-wrap:wrap;gap:6px}.side h3{width:100%}.f{width:auto;margin:0}.srow{gap:10px 28px}.srow>div:nth-child(2){order:0;flex-basis:auto}}
 @media(max-width:640px){table{min-width:560px}th,td{padding:8px 9px}td.d{font-size:16px}th{font-size:12px}.tw{max-height:70vh;overflow:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}.shint{display:block}th{position:sticky;top:0;z-index:2}th:first-child,td:first-child{position:sticky;left:0;z-index:1}th:first-child{z-index:3;background:#171a1f}td:first-child{background:var(--panel)}tr.live td:first-child{background:#2a1618}tr.r:hover td:first-child{background:#232a31}}
 </style></head><body>
