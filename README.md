@@ -8,6 +8,8 @@ neu aufgebaut.
 
 - 📅 **Karten- und Tabellenansicht** mit Umschalter
 - 🔴 **Matchday-Status**: Turniertage, Countdown und "Als nächstes"-Liste
+- 🎯 **Matchday-Spiele**: an Spieltagen die konkreten Paarungen des Tages
+  (via [api.dartsapi.com](https://dartsapi.com/documentation))
 - 🏷️ **Filter** nach Sender und Serie (Majors, European Tour, World Series …)
 - 🏆 **Order of Merit** direkt verlinkt — aus der Saison-Karte und im Hero bei
   Majors und European-Tour-Events
@@ -32,6 +34,7 @@ Tabellenansicht:
 | `index.html` | Webseite mit eingebetteten Termindaten  |
 | `darts.json` | Rohdaten als JSON                       |
 | `darts.ics`  | Kalender zum Abonnieren oder Importieren |
+| `fixtures.json` | Matchday-Spiele des Tages als JSON   |
 
 ## 🛠️ Nutzung
 
@@ -64,6 +67,22 @@ python3 fetch_termine.py --out-dir dist --html-out dist/index.html
 
 Optionen wie `--source`, `--et-source` oder `--layout` erlaubt die Arbeit mit
 lokalen Kopien; ein Blick in `--help` lohnt sich.
+
+## 🎯 Matchday-Spiele
+
+An Spieltagen werden zusätzlich die konkreten Paarungen des Tages aus
+[api.dartsapi.com](https://dartsapi.com/documentation) geladen und unter dem
+Hero angezeigt. Dafür wird der API-Key in der Umgebungsvariable
+`DARTS_API_KEY` erwartet:
+
+```bash
+DARTS_API_KEY="da_live_..." ./run.sh
+```
+
+Ohne Key oder bei API-Fehlern läuft der Build normal weiter, es werden nur
+keine Spiele eingeblendet. Für Tests gibt es `--fixtures-source <datei.json>`
+(lokale API-Antwort) und `--no-fixtures`. Der kostenlose Tarif erlaubt 60
+Anfragen pro Minute bzw. 500 pro Tag.
 
 ## 🗂️ Aufbau
 

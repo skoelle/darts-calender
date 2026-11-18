@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -22,6 +23,15 @@ ROBOTS_TOKEN = USER_AGENT.split("/")[0].strip().lower()
 ROBOTS_MAX_BYTES = 500 * 1024
 CATEGORY = "pdc"
 DEFAULT_BLACKLIST = Path(__file__).resolve().parent / "blacklist.txt"
+FIXTURES_API_URL = "https://api.dartsapi.com/v1/fixtures"
+ROUND_LABELS = {
+    "last_64": "Letzte 64",
+    "last_32": "Letzte 32",
+    "last_16": "Achtelfinale",
+    "quarter_final": "Viertelfinale",
+    "semi_final": "Halbfinale",
+    "final": "Finale",
+}
 
 DATE_RE = re.compile(r"^(\d{2})\.(\d{2})\.(\d{4})\s*(.*)$", re.DOTALL)
 ET_ROW_RE = re.compile(r"<tr>(.*?)</tr>", re.DOTALL)
@@ -570,6 +580,73 @@ def fetch(url):
         return response.read().decode("utf-8", errors="replace")
 
 
+def fetch_fixtures(today):
+    key = os.environ.get("DARTS_API_KEY", "").strip()
+    if not key:
+        print("Warnung: DARTS_API_KEY nicht gesetzt, Matchday-Spiele werden uebersprungen")
+        return []
+
+    query = urllib.parse.urlencode(
+        {"from": today.isoformat(), "to": today.isoformat(), "limit": 100}
+    )
+    request = urllib.request.Request(
+        f"{FIXTURES_API_URL}?{query}",
+        headers={
+            "Authorization": f"Bearer {key}",
+            "Accept": "application/json",
+            "User-Agent": USER_AGENT,
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8", errors="replace"))
+    except (OSError, ValueError) as error:
+        print(f"Warnung: Matchday-Spiele nicht ladbar: {error}")
+        return []
+    return normalize_fixtures(payload.get("data") or [])
+
+
+def normalize_fixtures(raw):
+    fixtures = []
+    for item in raw:
+        players = [
+            (player.get("name") or "").strip() for player in (item.get("players") or [])
+        ]
+        if len(players) != 2 or not all(players):
+            continue
+        start = item.get("starts_at")
+        local_start = ""
+        if start:
+            try:
+                local_start = (
+                    datetime.fromisoformat(start.replace("Z", "+00:00"))
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .strftime("%H:%M")
+                )
+            except ValueError:
+                local_start = ""
+        round_code = item.get("round") or ""
+        confirmed = item.get("date_confirmed")
+        fixtures.append(
+            {
+                "competition": item.get("competition") or "",
+                "round": ROUND_LABELS.get(round_code, round_code),
+                "start": local_start,
+                "confirmed": confirmed if isinstance(confirmed, bool) else None,
+                "players": players,
+            }
+        )
+    fixtures.sort(
+        key=lambda f: (
+            f["start"] == "",
+            f["start"],
+            f["competition"],
+            f["players"][0],
+        )
+    )
+    return fixtures
+
+
 def js_payload(ranges):
     payload = json.dumps(ranges, ensure_ascii=False, separators=(",", ":"))
     payload = payload.replace("</", "<\\/")
@@ -577,25 +654,36 @@ def js_payload(ranges):
     return payload
 
 
-def inject_data(html, payload):
+def inject_var(html, name, payload):
+    prefix = f"const {name}="
     lines = html.split("\n")
     for index, line in enumerate(lines):
-        if not line.startswith("const DATA="):
+        if not line.startswith(prefix):
             continue
         end = index
         while end < len(lines) and not lines[end].rstrip().endswith("];"):
             end += 1
         if end >= len(lines):
-            raise ValueError("Datenzeile in Layout nicht abgeschlossen")
-        lines[index : end + 1] = [f"const DATA={payload};"]
+            raise ValueError(f"Zeile '{name}' in Layout nicht abgeschlossen")
+        lines[index : end + 1] = [f"{prefix}{payload};"]
         return "\n".join(lines)
-    raise ValueError("Kein 'const DATA=' im Layout gefunden")
+    raise ValueError(f"Kein 'const {name}=' im Layout gefunden")
 
 
-def build_html(ranges, layout_path):
+def inject_data(html, payload):
+    return inject_var(html, "DATA", payload)
+
+
+def inject_fixtures(html, payload):
+    return inject_var(html, "FIXTURES", payload)
+
+
+def build_html(ranges, fixtures, layout_path):
     html = layout_path.read_text(encoding="utf-8")
     html = inject_build_time(html, build_stamp())
-    return inject_data(html, js_payload(ranges))
+    html = inject_data(html, js_payload(ranges))
+    html = inject_fixtures(html, js_payload(fixtures))
+    return html
 
 
 def build_stamp():
@@ -645,6 +733,16 @@ def main():
         "--no-blacklist",
         action="store_true",
         help="Blacklist-Filterung deaktivieren",
+    )
+    parser.add_argument(
+        "--fixtures-source",
+        type=Path,
+        help="Lokale JSON-Datei mit dartsapi.com-Fixtures statt API-Abruf",
+    )
+    parser.add_argument(
+        "--no-fixtures",
+        action="store_true",
+        help="Matchday-Spiele nicht abrufen",
     )
     parser.add_argument("--category", default=CATEGORY)
     args = parser.parse_args()
@@ -701,10 +799,22 @@ def main():
         for item in ranges:
             item["sender"] = classify_sender(item)
 
+    fixtures = []
+    if not args.no_fixtures:
+        if args.fixtures_source:
+            try:
+                payload = json.loads(args.fixtures_source.read_text(encoding="utf-8"))
+                fixtures = normalize_fixtures(payload.get("data") or [])
+            except (OSError, ValueError) as error:
+                print(f"Warnung: Matchday-Spiele aus Datei nicht lesbar: {error}")
+        else:
+            fixtures = fetch_fixtures(datetime.now(ZoneInfo("Europe/Berlin")).date())
+
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = out_dir / "darts.json"
     ics_path = out_dir / "darts.ics"
+    fixtures_path = out_dir / "fixtures.json"
 
     json_path.write_text(
         json.dumps(ranges, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -714,12 +824,15 @@ def main():
         encoding="utf-8",
         newline="",
     )
+    fixtures_path.write_text(
+        json.dumps(fixtures, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
     html_path = args.html_out
     html_written = False
     if html_path is not None:
         try:
-            html = build_html(ranges, args.layout)
+            html = build_html(ranges, fixtures, args.layout)
         except (OSError, ValueError) as error:
             print(f"Warnung: HTML nicht erzeugt: {error}")
         else:
@@ -729,6 +842,12 @@ def main():
 
     print(f"Kategorie: {args.category}")
     print(f"Zeitraeume: {len(ranges)}")
+    print(f"Matchday-Spiele: {len(fixtures)}")
+    for fixture in fixtures:
+        print(
+            f"  {fixture['start'] or '--:--'}  {fixture['round']}  "
+            f"{fixture['players'][0]} vs. {fixture['players'][1]}"
+        )
     if removed:
         print(f"Blacklist: {len(removed)} Termine entfernt")
         for item in removed:
@@ -752,6 +871,7 @@ def main():
         print(f"  {sender}: {counts[sender]}")
     print(f"JSON: {json_path}")
     print(f"ICS:  {ics_path}")
+    print(f"Spiele: {fixtures_path}")
     if html_written:
         print(f"HTML: {html_path}")
 

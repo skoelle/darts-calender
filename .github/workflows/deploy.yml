@@ -27,17 +27,20 @@ jobs:
 
       - name: Generate page, ICS and JSON
         run: python3 fetch_termine.py --out-dir dist --html-out dist/index.html
+        env:
+          DARTS_API_KEY: ${{ secrets.DARTS_API_KEY }}
 
       - name: Validate output
         run: |
           set -euo pipefail
-          for file in dist/index.html dist/darts.ics dist/darts.json; do
+          for file in dist/index.html dist/darts.ics dist/darts.json dist/fixtures.json; do
             if [ ! -s "$file" ]; then
               echo "Error: $file missing or empty"
               exit 1
             fi
           done
           grep -q "const DATA=" dist/index.html || { echo "Error: DATA not injected"; exit 1; }
+          grep -q "const FIXTURES=" dist/index.html || { echo "Error: FIXTURES not injected"; exit 1; }
           python3 -c "import json; d=json.load(open('dist/darts.json')); assert d, 'empty JSON'; print(f'{len(d)} Termine')"
 
       - name: Upload build artifact
@@ -94,3 +97,4 @@ jobs:
 #   IONOS_SFTP_HOST     - IONOS SFTP server hostname
 #   IONOS_SFTP_USER     - IONOS SFTP username
 #   IONOS_SFTP_PASSWORD - IONOS SFTP password
+#   DARTS_API_KEY       - API key for api.dartsapi.com (matchday fixtures)
