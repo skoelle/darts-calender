@@ -92,7 +92,38 @@ Anfragen pro Minute bzw. 500 pro Tag.
 - `layout.html` — Template der Webseite, wird mit den Termindaten befüllt
 - `blacklist.txt` — Einträge, die nicht übernommen werden
 - `run.sh` — Build-Skript für den täglichen Lauf
+- `scripts/trigger-deploy.sh` — stößt den GitHub-Workflow per `workflow_dispatch` an
+- `scripts/install-timers.sh` — richtet den systemd-User-Timer dafür ein
 - `.github/` — Workflow für Build und Deploy
+
+## ⏰ Pünktlicher Deploy-Trigger
+
+GitHub plant `schedule`-Workflows nur „best effort": Bei hoher Last und für
+Public-Repos werden sie teils um mehrere Stunden verzögert. Damit die Seite
+verlässlich früh aktuell ist, wird der Workflow zusätzlich per
+`workflow_dispatch` angestoßen — ein Dispatch startet sofort, ohne
+Scheduler-Stau.
+
+Auf dem Dev-Host richtet `scripts/install-timers.sh` dafür einen
+systemd-User-Timer ein, der `scripts/trigger-deploy.sh` täglich um 03:00
+(Europe/Berlin) ausführt:
+
+```bash
+./scripts/install-timers.sh
+```
+
+Das Script legt `~/.config/systemd/user/darts-dispatch.{service,timer}` an und
+aktiviert den Timer. Voraussetzung ist ein angemeldetes `gh` mit
+`workflow`-Scope. Läuft der Host zur geplanten Zeit nicht, holt
+`Persistent=true` den Lauf beim nächsten Start nach. Der `schedule`-Eintrag im
+Workflow bleibt als Sicherheitsnetz bestehen, falls der Host mehrere Tage nicht
+läuft — Doppelläufe sind dabei unkritisch.
+
+Logs:
+
+```bash
+journalctl --user -u darts-dispatch.service -n 50
+```
 
 ## ⚠️ Hinweis
 
